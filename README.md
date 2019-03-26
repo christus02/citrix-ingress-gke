@@ -82,4 +82,84 @@ Explanation of the IP address captured from previous output:
 | 172.18.0.5 | 35.200.146.53  | Server     | SNIP (to communicate with K8s)    |
 | 172.19.0.2 | 35.200.250.239 | Client     | VIP (to receive incoming traffic) |
 
+### Basic configurtion of VPX
 
+Login to the newly created VPX instance and do some basic configs
+
+```
+ssh nsroot@35.200.253.191
+<input the password>
+
+clear config -force full
+add ns ip 172.18.0.5 255.255.0.0 -type snip -mgmt enabled
+enable ns feature MBF
+```
+Now the VPX instance is ready
+
+### Overview of Deployment
+
+* For the demo, we would deploy a basic apache microservice that would service traffic on the root http path (/)
+* These apache pods would be load-balanced by CPX Ingress sitting inside the Kubernetes cluster (Tier-2 LB)
+* VPX (Tier-1 LB) which is present outside the Kubernetes cluster would load-balance the CPX Ingress
+* We would use [Ingress class](https://github.com/citrix/citrix-k8s-ingress-controller/blob/master/docs/ingress-class.md) to segregate the Ingress between CPX and VPX
+* [Citrix Ingress Controller](https://github.com/citrix/citrix-k8s-ingress-controller) is a separate pod that would automate the VPX configuration
+
+### Deploying the Microservice:
+```
+kubectl create -f https://raw.githubusercontent.com/christus02/citrix-ingress-gke/master/manifests/apache.yaml
+```
+
+### Deploying CPX Ingress (Tier-2 LB):
+```
+kubectl create -f https://raw.githubusercontent.com/christus02/citrix-ingress-gke/master/manifests/cpx-ingress-gke.yaml
+```
+
+### Deploying the Citrix Ingress Controller for automating the VPX configuration:
+```
+wget https://raw.githubusercontent.com/christus02/citrix-ingress-gke/master/manifests/cic-gke.yaml
+```
+Modify the below variables inside the yaml file
+
+* NS_IP should be replaced with the NSIP of the VPX instance. In my example it is "172.18.0.5"
+* NS_VIP should be replaced with the VIP (Client side IP) of the VPX instance. In my example it is "172.19.0.2"
+* NS_USER should be replaced with VPX's username. If it is not changed, ignore it.
+* NS_PASSWORD should be replaced with VPX's password. If it is not changed, ignore it.
+
+More information on these variables can be found in the [Citrix Ingress Controller Git Repo](https://github.com/citrix/citrix-k8s-ingress-controller/tree/master/deployment/baremetal)
+
+After doing necessary modifications, apply the yaml
+```
+kubectl create -f cic-gke.yaml
+```
+
+### Configuring CPX Ingress (Tier-2):
+
+**Note**
+This ingress was created for example purpose and does not have TLS termination. You can enable TLS termination by creating Kubernetes secret and referring the same in the Ingress
+
+```
+kubectl create -f https://raw.githubusercontent.com/christus02/citrix-ingress-gke/master/manifests/ingress-apache.yaml
+```
+
+### Configuring VPX Ingress (Tier-1):
+
+**Note**
+This ingress was created for example purpose and does not have TLS termination. You can enable TLS termination by creating Kubernetes secret and referring the same in the Ingress
+
+```
+kubectl create -f https://raw.githubusercontent.com/christus02/citrix-ingress-gke/master/manifests/vpx-ingress.yaml
+```
+
+### Accessing the Microservice from Internet
+
+Now the deployment is done. Let's test it out by sending some traffic.
+
+Send a curl with hostname or access it via a web browser by adding necessary host entries in your client.
+
+```
+$ curl http://35.200.250.239/ -H 'Host: citrix-ingress-gke.com'
+<html><body><h1>It works!</h1></body></html>
+```
+
+This is the response from the Apache microservice that is running inside the Kubernetes cluster.
+The IP which was used to access is the VIP (Client side IP) of VPX
