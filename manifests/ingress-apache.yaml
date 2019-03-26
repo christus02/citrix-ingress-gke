@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cpx-ingress
+  annotations:
+   kubernetes.io/ingress.class: "citrix-adc-cpx"
+spec:
+  rules:
+  - host: citrix-ingress-gke.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: apache
+          servicePort: 80
+---
