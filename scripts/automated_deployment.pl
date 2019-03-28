@@ -5,7 +5,7 @@ my $operation = $ARGV[0];
 if ($operation eq "delete") {
 
     qx#gcloud -q deployment-manager deployments delete tier1-vpx#;
-    qx#gcloud -q beta container clusters delete "k8s-cluster-with-cpx"#;
+    qx#gcloud -q beta container clusters delete "k8s-cluster-with-cpx" --zone "us-east1-b"#;
 
     qx#gcloud -q compute networks subnets delete vpx-snet-mgmt --region=us-east1#;
     qx#gcloud -q compute --project=netscaler-networking-k8 networks delete vpx-snet-mgmt#;
