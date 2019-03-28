@@ -16,7 +16,7 @@ if ($operation eq "delete") {
     qx#gcloud -q compute networks subnets delete vpx-snet-snip --region=us-east1#;
     qx#gcloud -q compute --project=netscaler-networking-k8 networks delete vpx-snet-snip#;
 
-    qx#rm -rf ~/git_clone/#;
+    qx#rm -rf ~/example-cpx-vpx-for-kubernetes-2-tier-microservices/#;
 
     exit;
 
