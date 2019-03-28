@@ -27,7 +27,7 @@ my $home_dir = $ENV{'HOME'};
 my $repo_path = $ENV{'HOME'} . "/example-cpx-vpx-for-kubernetes-2-tier-microservices/";
 my $config_dir = $repo_path . "/gcp/config-files/";
 my $vpx_deployment_config_file = $config_dir . "/configuration.yml";
-my $zone = "us-east1";
+my $zone = "us-east1-b";
 my $vpx_instance_name = "citrix-adc-tier1-vpx";
 
 my $CLONE_REPO = "TRUE";
