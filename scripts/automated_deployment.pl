@@ -86,7 +86,7 @@ if ($CREATE_GKE eq "TRUE") {
     qx#gcloud -q beta container --project "$project_id" clusters create "k8s-cluster-with-cpx" --zone "us-east1-b" --username "admin" --cluster-version "1.11.7-gke.12" --machine-type "n1-standard-1" --image-type "COS" --disk-type "pd-standard" --disk-size "100" --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --num-nodes "3" --enable-cloud-logging --enable-cloud-monitoring --no-enable-ip-alias --network "projects/$project_id/global/networks/vpx-snet-snip" --subnetwork "projects/$project_id/regions/us-east1/subnetworks/vpx-snet-snip" --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair#;
 }
 
-if ($CREATE_VPX == "TRUE") {
+if ($CREATE_VPX eq "TRUE") {
     print ("\nEditing the deployment manager configuration file\n");
     qx#sed -i "s/<your project name>/$project_id/g" $vpx_deployment_config_file#;
 }
@@ -98,15 +98,19 @@ if ($CREATE_VPX_IMAGE eq "TRUE") {
     print ("\nImage creation process for VPX has been completed\n");
 }
 
-if ($CREATE_VPX == "TRUE") {
+if ($CREATE_VPX eq "TRUE") {
     print ("\n Creating VPX using GDM Template\n");
     qx#gcloud -q deployment-manager deployments create tier1-vpx --config $vpx_deployment_config_file#;
 }
 
-if ($CONFIG_VPX == "TRUE") {
+if ($CONFIG_VPX eq "TRUE") {
+
+    print ("\nWaiting for the VPX to boot up\n");
+    sleep(60);
     print ("\nDoing basic VPX Configuration\n");
     qx#gcloud -q compute ssh $vpx_instance_name --zone $zone --command "show version"#;
     qx#gcloud -q compute ssh $vpx_instance_name --zone $zone --command "show version"#;
     qx#gcloud -q compute ssh $vpx_instance_name --zone $zone --command "add ns ip 10.10.10.20 255.255.255.0 -type snip -mgmt enabled"#;
     qx#gcloud -q compute ssh $vpx_instance_name --zone $zone --command "enable ns mode mbf"#;
+
 }
