@@ -66,6 +66,17 @@ spec:
             value: "yes"
           - name: "KUBERNETES_TASK_ID"
             value: ""
+          #This is required for Health check to succeed
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 9080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
           imagePullPolicy: Always
         # Add cic as a sidecar
         - name: cic
@@ -96,17 +107,6 @@ spec:
           args:
             - --ingress-classes
               citrix-adc-cpx
-          #This is required for Health check to succeed
-          readinessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /
-              port: 9080
-              scheme: HTTP
-            initialDelaySeconds: 60
-            periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
           imagePullPolicy: Always
 
 ---
