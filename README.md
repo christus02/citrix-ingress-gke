@@ -50,7 +50,7 @@ gcloud container clusters get-credentials test-1 --zone asia-south1-a --project 
 Now your kubectl client is updated with the credentials required to login to the newly created Kubernetes cluster
 
 ```
-kubectl create clusterrolebinding cpx-cluster-admin --clusterrole=cluster-admin --user=<email of the gcp account>
+kubectl create clusterrolebinding cpx-cluster-admin --clusterrole=cluster-admin --user=$(gcloud config get-value core/account)
 ```
 
 ### Deploying a Citrix ADC VPX instance on Google Cloud
